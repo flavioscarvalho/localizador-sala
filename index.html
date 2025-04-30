@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Localizador de Sala – CNSG</title>
+  <title>Localizador de SALA – Colégio Nossa Senhora das Graças</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 2rem; background-color: #f9f9f9; }
     .container { max-width: 800px; margin: auto; }
     h1 { text-align: center; }
-    input[type="text"] { width: calc(100% - 100px); padding: .5rem; font-size: 1rem; }
+    input[type="text"] { flex: 1; padding: .5rem; font-size: 1rem; }
     button { width: 80px; padding: .5rem; font-size: 1rem; margin-left: 10px; }
     .search-container { display: flex; margin-bottom: 1rem; }
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
@@ -19,7 +19,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Localizador de Sala – CNSG</h1>
+    <h1>Localizador de SALA – Colégio Nossa Senhora das Graças</h1>
+    <p style="font-size:12px;"><strong>Observação:</strong> Digite o nome sem acento.</p>
     <div class="search-container">
       <input type="text" id="search" placeholder="Digite o nome do aluno..." />
       <button id="btnSearch">Buscar</button>
@@ -35,13 +36,19 @@
   </div>
 
   <script>
+    // Função para remover acentos
+    function removerAcentos(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const urlJson = 'ensalamento_detalhado.json';
       let dados = [];
 
-      fetch(urlJson)
+      // Fetch sem cache
+      fetch(urlJson, { cache: 'no-store' })
         .then(response => {
-          if (!response.ok) throw new Error();
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.json();
         })
         .then(json => { dados = json; })
@@ -49,21 +56,30 @@
           document.getElementById('error').hidden = false;
         });
 
-      const input = document.getElementById('search');
-      const btn = document.getElementById('btnSearch');
-      const table = document.getElementById('resultsTable');
-      const tbody = table.querySelector('tbody');
+      const input   = document.getElementById('search');
+      const btn     = document.getElementById('btnSearch');
+      const table   = document.getElementById('resultsTable');
+      const tbody   = table.querySelector('tbody');
       const noResults = document.getElementById('noResults');
 
       btn.addEventListener('click', () => {
-        const termo = input.value.trim().toUpperCase();
-        tbody.innerHTML = '';
-        noResults.hidden = true;
-        if (!termo) {
+        const raw = input.value.trim();
+        if (!raw) {
           table.hidden = true;
+          noResults.hidden = true;
           return;
         }
-        const filtrados = dados.filter(item => item.nome.toUpperCase().includes(termo));
+
+        // Prepara termo para busca
+        const termo = removerAcentos(raw).toUpperCase();
+        tbody.innerHTML = '';
+        noResults.hidden = true;
+
+        // Filtra por substring sem acentos
+        const filtrados = dados.filter(item => 
+          removerAcentos(item.nome).toUpperCase().includes(termo)
+        );
+
         if (filtrados.length === 0) {
           table.hidden = true;
           noResults.hidden = false;
