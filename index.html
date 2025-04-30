@@ -48,13 +48,16 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // 1) Aponte para o JSON correto:
-      const urlJson = 'ensalamento_detalhado.json';
+      // Defina o caminho relativo ao JSON:
+      const urlJson = './ensalamento_detalhado.json';
       let dados = [];
 
-      // 2) Carrega o JSON e guarda em memória
+      console.log('Tentando carregar JSON de:', urlJson);
+
+      // Carrega o JSON
       fetch(urlJson)
         .then(resp => {
+          console.log('Resposta HTTP:', resp.status, resp.statusText);
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           return resp.json();
         })
@@ -67,14 +70,14 @@
           document.getElementById('error').hidden = false;
         });
 
-      // 3) Elementos do DOM
+      // Referências ao DOM
       const input  = document.getElementById('search');
       const btn    = document.getElementById('btnSearch');
       const table  = document.getElementById('resultsTable');
       const tbody  = table.querySelector('tbody');
       const noRes  = document.getElementById('noResults');
 
-      // 4) Função de busca
+      // Função de busca
       function executarBusca() {
         const termo = input.value.trim().toUpperCase();
         tbody.innerHTML = '';
@@ -85,8 +88,33 @@
           return;
         }
 
-        // Filtra por nome (case-insensitive)
         const filtrados = dados.filter(item =>
           item.nome.toUpperCase().includes(termo)
         );
 
+        if (filtrados.length === 0) {
+          table.hidden = true;
+          noRes.hidden = false;
+        } else {
+          filtrados.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.nome}</td>
+              <td>${item.sala}</td>
+              <td>${item.carteira}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+          table.hidden = false;
+        }
+      }
+
+      // Eventos de clique e Enter
+      btn.addEventListener('click', executarBusca);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') executarBusca();
+      });
+    });
+  </script>
+</body>
+</html>
