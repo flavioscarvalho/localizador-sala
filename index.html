@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Localizador de Sala – CNSG</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background-color: #f9f9f9; }
+    .container { max-width: 800px; margin: auto; }
+    h1 { text-align: center; }
+    input[type="text"] { width: calc(100% - 100px); padding: .5rem; font-size: 1rem; }
+    button { width: 80px; padding: .5rem; font-size: 1rem; margin-left: 10px; }
+    .search-container { display: flex; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: .75rem; text-align: left; }
+    th { background-color: #e9e9e9; }
+    .message { margin-top: 1rem; color: #a00; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Localizador de Sala – CNSG</h1>
+    <div class="search-container">
+      <input type="text" id="search" placeholder="Digite o nome do aluno..." />
+      <button id="btnSearch">Buscar</button>
+    </div>
+    <p id="error" class="message" hidden>Erro ao carregar dados. Verifique o JSON.</p>
+    <table id="resultsTable" hidden>
+      <thead>
+        <tr><th>Nome</th><th>Sala</th><th>Carteira</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="noResults" class="message" hidden>Nenhum aluno encontrado.</p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlJson = 'ensalamento.json';
+      let dados = [];
+
+      fetch(urlJson)
+        .then(response => {
+          if (!response.ok) throw new Error();
+          return response.json();
+        })
+        .then(json => { dados = json; })
+        .catch(() => {
+          document.getElementById('error').hidden = false;
+        });
+
+      const input = document.getElementById('search');
+      const btn = document.getElementById('btnSearch');
+      const table = document.getElementById('resultsTable');
+      const tbody = table.querySelector('tbody');
+      const noResults = document.getElementById('noResults');
+
+      btn.addEventListener('click', () => {
+        const termo = input.value.trim().toUpperCase();
+        tbody.innerHTML = '';
+        noResults.hidden = true;
+        if (!termo) {
+          table.hidden = true;
+          return;
+        }
+        const filtrados = dados.filter(item => item.nome.toUpperCase().includes(termo));
+        if (filtrados.length === 0) {
+          table.hidden = true;
+          noResults.hidden = false;
+        } else {
+          filtrados.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${item.nome}</td>
+              <td>${item.sala}</td>
+              <td>${item.carteira}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+          table.hidden = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
