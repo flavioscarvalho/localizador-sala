@@ -1,126 +1,108 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Localizador de Sala – CNSG</title>
+  <meta charset="UTF-8">
+  <title>Localizador de SALA - Colégio Nossa Senhora das Graças</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; background-color: #f9f9f9; }
-    .container { max-width: 800px; margin: auto; }
-    h1 { text-align: center; }
-    .search-container { display: flex; margin-bottom: 1rem; }
-    input[type="text"] { flex: 1; padding: .5rem; font-size: 1rem; }
-    button { width: 80px; padding: .5rem; font-size: 1rem; margin-left: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: .75rem; text-align: left; }
-    th { background-color: #e9e9e9; }
-    .message { margin-top: 1rem; color: #a00; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+    }
+    header {
+      text-align: left;
+      font-size: 12px;
+      margin-bottom: 1.5rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 16px;
+    }
+    header p {
+      margin: 0.25rem 0 1rem 0;
+    }
+    .search-container {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .search-container input[type="text"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 250px;
+    }
+    .search-container button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Localizador de Sala – CNSG</h1>
 
-    <div class="search-container">
-      <input type="text" id="search" placeholder="Digite o nome do aluno..." />
-      <button id="btnSearch">Buscar</button>
-    </div>
+  <header>
+    <h1>Localizador de SALA - Colégio Nossa Senhora das Graças</h1>
+    <p><strong>Observação:</strong> Digite o nome sem acento.</p>
+  </header>
 
-    <p id="error" class="message" hidden>
-      Erro ao carregar dados. Verifique o JSON.
-    </p>
-
-    <table id="resultsTable" hidden>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Sala</th>
-          <th>Carteira</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <p id="noResults" class="message" hidden>
-      Nenhum aluno encontrado.
-    </p>
+  <div class="search-container">
+    <input type="text" id="nomeInput" placeholder="Digite o nome completo">
+    <button id="buscarBtn">Buscar</button>
   </div>
 
+  <div id="result"></div>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      let dados = [];
-      const input = document.getElementById('search');
-      const btn   = document.getElementById('btnSearch');
-      const table = document.getElementById('resultsTable');
-      const tbody = table.querySelector('tbody');
-      const noRes = document.getElementById('noResults');
-      const errEl = document.getElementById('error');
+    // Função para remover acentos
+    function removerAcentos(str) {
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    }
 
-      // Tenta carregar o JSON relativo primeiro, senão vai no raw.githubusercontent.com
-      const uris = [
-        './ensalamento_detalhado.json',
-        'https://raw.githubusercontent.com/flavioscarvalho/localizador-sala/main/ensalamento_detalhado.json'
-      ];
+    let dados = [];
 
-      function fetchJson(index=0) {
-        if (index >= uris.length) {
-          errEl.hidden = false;
-          console.error('Não foi possível carregar o JSON em nenhum dos endpoints.');
-          return;
+    // Carrega o arquivo JSON
+    fetch('ensalamento_detalhado.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Não foi possível carregar o arquivo JSON.');
         }
-        const url = uris[index];
-        console.log(`Tentando ${url}`);
-        fetch(url)
-          .then(r => {
-            console.log(`Resposta ${url}:`, r.status);
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return r.json();
-          })
-          .then(j => {
-            dados = j;
-            console.log('JSON carregado com sucesso:', dados);
-          })
-          .catch(_ => {
-            console.warn(`Falha ao carregar de ${url}, tentando próxima opção...`);
-            fetchJson(index+1);
-          });
-      }
-
-      fetchJson();
-
-      function executarBusca() {
-        const termo = input.value.trim().toUpperCase();
-        tbody.innerHTML = '';
-        noRes.hidden = true;
-        table.hidden = true;
-
-        if (!termo || !dados.length) return;
-
-        const filtrados = dados.filter(item =>
-          item.nome.toUpperCase().includes(termo)
-        );
-
-        if (filtrados.length) {
-          filtrados.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${item.nome}</td>
-              <td>${item.sala}</td>
-              <td>${item.carteira}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-          table.hidden = false;
-        } else {
-          noRes.hidden = false;
-        }
-      }
-
-      btn.addEventListener('click', executarBusca);
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') executarBusca();
+        return response.json();
+      })
+      .then(json => {
+        dados = json;
+      })
+      .catch(err => {
+        document.getElementById('result').innerText = 'Erro ao carregar dados.';
+        console.error(err);
       });
+
+    document.getElementById('buscarBtn').addEventListener('click', () => {
+      const input = document.getElementById('nomeInput').value.trim();
+      if (!input) {
+        alert('Por favor, digite um nome.');
+        return;
+      }
+      const busca = removerAcentos(input).toUpperCase();
+      const encontrado = dados.find(
+        item => removerAcentos(item.nome).toUpperCase() === busca
+      );
+      const resultDiv = document.getElementById('result');
+      if (encontrado) {
+        resultDiv.innerHTML = `
+          <p><strong>Nome:</strong> ${encontrado.nome}</p>
+          <p><strong>Sala:</strong> ${encontrado.sala}</p>
+          <p><strong>Carteira:</strong> ${encontrado.carteira}</p>
+        `;
+      } else {
+        resultDiv.innerHTML = `<p>Nenhum resultado encontrado para: <em>${input}</em></p>`;
+      }
     });
   </script>
+
 </body>
 </html>
