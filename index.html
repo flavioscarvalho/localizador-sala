@@ -65,11 +65,11 @@
 
     let dados = [];
 
-    // Carrega o arquivo JSON
+    // Carrega o arquivo JSON detalhado
     fetch('ensalamento_detalhado.json')
       .then(response => {
         if (!response.ok) {
-          throw new Error('Não foi possível carregar o arquivo JSON.');
+          throw new Error('Não foi possível carregar o arquivo JSON detalhado.');
         }
         return response.json();
       })
@@ -106,3 +106,4 @@
 
 </body>
 </html>
+
