@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Localizador de Sala – CNSG</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 2rem; background-color: #f9f9f9; }
@@ -20,6 +20,7 @@
 <body>
   <div class="container">
     <h1>Localizador de Sala – CNSG</h1>
+
     <div class="search-container">
       <input type="text" id="search" placeholder="Digite o nome do aluno..." />
       <button id="btnSearch">Buscar</button>
@@ -47,62 +48,45 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const urlJson = 'ensalamento.json';
+      // 1) Aponte para o JSON correto:
+      const urlJson = 'ensalamento_detalhado.json';
       let dados = [];
 
-      // 1) Carrega o JSON
+      // 2) Carrega o JSON e guarda em memória
       fetch(urlJson)
         .then(resp => {
-          if (!resp.ok) throw new Error('Falha ao carregar JSON');
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           return resp.json();
         })
-        .then(json => dados = json)
-        .catch(() => {
+        .then(json => {
+          dados = json;
+          console.log('JSON carregado com sucesso:', dados);
+        })
+        .catch(err => {
+          console.error('Erro ao carregar JSON:', err);
           document.getElementById('error').hidden = false;
         });
 
-      // 2) Elementos do DOM
+      // 3) Elementos do DOM
       const input  = document.getElementById('search');
       const btn    = document.getElementById('btnSearch');
       const table  = document.getElementById('resultsTable');
       const tbody  = table.querySelector('tbody');
       const noRes  = document.getElementById('noResults');
 
-      // 3) Evento de clique
-      btn.addEventListener('click', () => {
+      // 4) Função de busca
+      function executarBusca() {
         const termo = input.value.trim().toUpperCase();
         tbody.innerHTML = '';
         noRes.hidden = true;
 
-        // Se não houver termo, esconde a tabela
         if (!termo) {
           table.hidden = true;
           return;
         }
 
-        // Filtra somente por nome
+        // Filtra por nome (case-insensitive)
         const filtrados = dados.filter(item =>
           item.nome.toUpperCase().includes(termo)
         );
 
-        if (filtrados.length === 0) {
-          table.hidden = true;
-          noRes.hidden = false;
-        } else {
-          // Preenche a tabela
-          filtrados.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${item.nome}</td>
-              <td>${item.sala}</td>
-              <td>${item.carteira}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-          table.hidden = false;
-        }
-      });
-    });
-  </script>
-</body>
-</html>
