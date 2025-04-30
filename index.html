@@ -48,54 +48,59 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Defina o caminho relativo ao JSON:
-      const urlJson = './ensalamento_detalhado.json';
       let dados = [];
+      const input = document.getElementById('search');
+      const btn   = document.getElementById('btnSearch');
+      const table = document.getElementById('resultsTable');
+      const tbody = table.querySelector('tbody');
+      const noRes = document.getElementById('noResults');
+      const errEl = document.getElementById('error');
 
-      console.log('Tentando carregar JSON de:', urlJson);
+      // Tenta carregar o JSON relativo primeiro, senão vai no raw.githubusercontent.com
+      const uris = [
+        './ensalamento_detalhado.json',
+        'https://raw.githubusercontent.com/flavioscarvalho/localizador-sala/main/ensalamento_detalhado.json'
+      ];
 
-      // Carrega o JSON
-      fetch(urlJson)
-        .then(resp => {
-          console.log('Resposta HTTP:', resp.status, resp.statusText);
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          return resp.json();
-        })
-        .then(json => {
-          dados = json;
-          console.log('JSON carregado com sucesso:', dados);
-        })
-        .catch(err => {
-          console.error('Erro ao carregar JSON:', err);
-          document.getElementById('error').hidden = false;
-        });
+      function fetchJson(index=0) {
+        if (index >= uris.length) {
+          errEl.hidden = false;
+          console.error('Não foi possível carregar o JSON em nenhum dos endpoints.');
+          return;
+        }
+        const url = uris[index];
+        console.log(`Tentando ${url}`);
+        fetch(url)
+          .then(r => {
+            console.log(`Resposta ${url}:`, r.status);
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+          })
+          .then(j => {
+            dados = j;
+            console.log('JSON carregado com sucesso:', dados);
+          })
+          .catch(_ => {
+            console.warn(`Falha ao carregar de ${url}, tentando próxima opção...`);
+            fetchJson(index+1);
+          });
+      }
 
-      // Referências ao DOM
-      const input  = document.getElementById('search');
-      const btn    = document.getElementById('btnSearch');
-      const table  = document.getElementById('resultsTable');
-      const tbody  = table.querySelector('tbody');
-      const noRes  = document.getElementById('noResults');
+      fetchJson();
 
-      // Função de busca
       function executarBusca() {
         const termo = input.value.trim().toUpperCase();
         tbody.innerHTML = '';
         noRes.hidden = true;
+        table.hidden = true;
 
-        if (!termo) {
-          table.hidden = true;
-          return;
-        }
+        if (!termo || !dados.length) return;
 
         const filtrados = dados.filter(item =>
           item.nome.toUpperCase().includes(termo)
         );
 
-        if (filtrados.length === 0) {
-          table.hidden = true;
-          noRes.hidden = false;
-        } else {
+        if (filtrados.length) {
           filtrados.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -106,10 +111,11 @@
             tbody.appendChild(tr);
           });
           table.hidden = false;
+        } else {
+          noRes.hidden = false;
         }
       }
 
-      // Eventos de clique e Enter
       btn.addEventListener('click', executarBusca);
       input.addEventListener('keydown', e => {
         if (e.key === 'Enter') executarBusca();
