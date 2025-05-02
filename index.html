@@ -11,7 +11,7 @@
     .container { max-width: 800px; margin: auto; }
     h1 { text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; }
     .search-container { display: flex; margin-bottom: 1rem; }
-    input[type="text"] { flex: 1; padding: .5rem; font-size: 1rem; }
+    input[type="date"], input[type="text"] { flex: 1; padding: .5rem; font-size: 1rem; }
     button { width: 80px; padding: .5rem; font-size: 1rem; margin-left: 10px; }
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     th, td { border: 1px solid #ccc; padding: .75rem; text-align: left; }
@@ -24,6 +24,7 @@
     <h1>LOCALIZADOR DE SALA – CNSG</h1>
 
     <div class="search-container">
+      <input type="date" id="dateSearch" />
       <input type="text" id="search" placeholder="Digite o nome do aluno..." />
       <button id="btnSearch">Buscar</button>
     </div>
@@ -47,70 +48,63 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // URL com timestamp para bust de cache
-      const urlJson = `ensalamento_detalhado.json?ts=${Date.now()}`;
-      let dados = [];
-
-      // Fetch sem cache e logs de diagnóstico
-      fetch(urlJson, { cache: 'no-store' })
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.text();             // <- lê como texto bruto
-  })
-  .then(txt => {
-    console.log('Texto bruto do JSON:', txt);  // <- loga o texto cru
-    const json = JSON.parse(txt);              // <- então converte em objeto
-    dados = Array.isArray(json) ? json : [json];
-    console.log('JSON parseado:', dados);      // <- confirma o array resultante
-  })
-  .catch(err => {
-    console.error('Erro ao carregar JSON:', err);
-    document.getElementById('error').hidden = false;
-  });
-
-
-      const input     = document.getElementById('search');
-      const btn       = document.getElementById('btnSearch');
-      const table     = document.getElementById('resultsTable');
-      const tbody     = table.querySelector('tbody');
-      const noResults = document.getElementById('noResults');
+      const dateInput  = document.getElementById('dateSearch');
+      const nameInput  = document.getElementById('search');
+      const btn        = document.getElementById('btnSearch');
+      const table      = document.getElementById('resultsTable');
+      const tbody      = table.querySelector('tbody');
+      const noResults  = document.getElementById('noResults');
+      const errorMsg   = document.getElementById('error');
 
       btn.addEventListener('click', () => {
-        const raw = input.value.trim();
-        if (!raw) {
-          table.hidden     = true;
+        const dataBusc = dateInput.value;  // "YYYY-MM-DD"
+        if (!dataBusc) {
+          errorMsg.textContent = 'Selecione a data da aplicação.';
+          errorMsg.hidden = false;
+          table.hidden = true;
           noResults.hidden = true;
           return;
         }
 
-        // Prepara termo de busca (sem acentos, em maiúsculas)
-        const termo = removerAcentos(raw).toUpperCase();
-        console.log('Buscando termo:', termo);
+        const [ano, mes, dia] = dataBusc.split('-');
+        const filename = `ensalamento_${dia}_${mes}_${ano}.json?ts=${Date.now()}`;
 
-        tbody.innerHTML = '';
-        noResults.hidden = true;
-
-        // Filtra por substring sem acentos
-        const filtrados = dados.filter(item =>
-          removerAcentos(item.nome).toUpperCase().includes(termo)
-        );
-        console.log(`Encontrados ${filtrados.length} itens para "${termo}"`, filtrados);
-
-        if (filtrados.length === 0) {
-          table.hidden     = true;
-          noResults.hidden = false;
-        } else {
-          filtrados.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${item.nome}</td>
-              <td>${item.sala}</td>
-              <td>${item.carteira}</td>
-            `;
-            tbody.appendChild(tr);
+        fetch(filename, { cache: 'no-store' })
+          .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then(dados => {
+            errorMsg.hidden = true;
+            const termo = removerAcentos(nameInput.value.trim()).toUpperCase();
+            tbody.innerHTML = '';
+            const filtrados = dados.filter(item =>
+              removerAcentos(item.nome).toUpperCase().includes(termo)
+            );
+            if (filtrados.length === 0) {
+              table.hidden = true;
+              noResults.hidden = false;
+            } else {
+              noResults.hidden = true;
+              filtrados.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${item.nome}</td>
+                  <td>${item.sala}</td>
+                  <td>${item.carteira}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+              table.hidden = false;
+            }
+          })
+          .catch(err => {
+            console.error('Erro ao carregar JSON:', err);
+            errorMsg.textContent = 'Erro ao carregar dados. Verifique o JSON.';
+            errorMsg.hidden = false;
+            table.hidden = true;
+            noResults.hidden = true;
           });
-          table.hidden = false;
-        }
       });
     });
   </script>
