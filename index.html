@@ -47,27 +47,31 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // URL com timestamp para bust de cache
-      const urlJson = `ensalamento_detalhado.json?ts=${Date.now()}`;
+      // *** VARIÁVEL COM O TIMESTAMP DO JSON GERADO NO COLAB ***
+      // Substitua TIMESTAMP_AQUI pelo valor exato: YYYYMMDDTHHMMSS
+      const jsonFilename = `ensalamento_detalhado_TIMESTAMPAQUI.json`;
+
+      // URL com bust‐cache
+      const urlJson = `${jsonFilename}?ts=${Date.now()}`;
+
       let dados = [];
 
       // Fetch sem cache e logs de diagnóstico
       fetch(urlJson, { cache: 'no-store' })
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.text();             // <- lê como texto bruto
-  })
-  .then(txt => {
-    console.log('Texto bruto do JSON:', txt);  // <- loga o texto cru
-    const json = JSON.parse(txt);              // <- então converte em objeto
-    dados = Array.isArray(json) ? json : [json];
-    console.log('JSON parseado:', dados);      // <- confirma o array resultante
-  })
-  .catch(err => {
-    console.error('Erro ao carregar JSON:', err);
-    document.getElementById('error').hidden = false;
-  });
-
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.text();  // lê como texto bruto
+        })
+        .then(txt => {
+          console.log('Texto bruto do JSON:', txt);
+          const json = JSON.parse(txt);
+          dados = Array.isArray(json) ? json : [json];
+          console.log('JSON parseado:', dados);
+        })
+        .catch(err => {
+          console.error('Erro ao carregar JSON:', err);
+          document.getElementById('error').hidden = false;
+        });
 
       const input     = document.getElementById('search');
       const btn       = document.getElementById('btnSearch');
@@ -83,14 +87,12 @@
           return;
         }
 
-        // Prepara termo de busca (sem acentos, em maiúsculas)
         const termo = removerAcentos(raw).toUpperCase();
         console.log('Buscando termo:', termo);
 
         tbody.innerHTML = '';
         noResults.hidden = true;
 
-        // Filtra por substring sem acentos
         const filtrados = dados.filter(item =>
           removerAcentos(item.nome).toUpperCase().includes(termo)
         );
@@ -116,3 +118,4 @@
   </script>
 </body>
 </html>
+
