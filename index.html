@@ -1,114 +1,62 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <!-- Evita cache no navegador/GitHub Pages -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LOCALIZADOR DE SALA – CNSG</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; background-color: #f9f9f9; }
-    .container { max-width: 800px; margin: auto; }
-    h1 { text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; }
-    .search-container { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-    input[type="text"], input[type="date"] { flex: 1; padding: .5rem; font-size: 1rem; }
-    button { padding: .5rem 1rem; font-size: 1rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: .75rem; text-align: left; }
-    th { background-color: #e9e9e9; }
-    .message { margin-top: 1rem; color: #a00; }
-  </style>
-</head>
+<head>…</head>
 <body>
-  <div class="container">
-    <h1>LOCALIZADOR DE SALA – CNSG</h1>
-
-    <div class="search-container">
-      <input type="text" id="search" placeholder="Digite o nome do aluno..." />
-      <input type="date" id="dateSearch" />
-      <button id="btnSearch">Buscar</button>
-    </div>
-
-    <p id="error" class="message" hidden>Erro ao carregar dados. Verifique o JSON.</p>
-
-    <table id="resultsTable" hidden>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Sala</th>
-          <th>Carteira</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <p id="noResults" class="message" hidden>Nenhum aluno encontrado.</p>
-  </div>
+  <!-- ... cabeçalho e inputs ... -->
+  <input type="date" id="dateSearch" />
+  <button id="btnSearch">Buscar</button>
+  <!-- ... tabela e mensagens ... -->
 
   <script>
-    // Remove acentos de uma string
-    function removerAcentos(str) {
-      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-    }
+    function removerAcentos(str) { /* ... */ }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // URL com bust‐cache
-      const urlJson = `ensalamento_detalhado.json?ts=${Date.now()}`;
-      let dados = [];
-
-      // Carrega o JSON sem cache
-      fetch(urlJson, { cache: 'no-store' })
-        .then(response => {
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return response.json();
-        })
-        .then(json => {
-          dados = Array.isArray(json) ? json : [json];
-        })
-        .catch(err => {
-          console.error('Erro ao carregar JSON:', err);
-          document.getElementById('error').hidden = false;
-        });
-
-      const inputName   = document.getElementById('search');
-      const inputDate   = document.getElementById('dateSearch');
-      const btn         = document.getElementById('btnSearch');
-      const table       = document.getElementById('resultsTable');
-      const tbody       = table.querySelector('tbody');
-      const noResults   = document.getElementById('noResults');
+      const inputDate = document.getElementById('dateSearch');
+      const btn       = document.getElementById('btnSearch');
+      const table     = document.getElementById('resultsTable');
+      const tbody     = table.querySelector('tbody');
+      const noResults = document.getElementById('noResults');
+      const error     = document.getElementById('error');
 
       btn.addEventListener('click', () => {
-        const termo    = removerAcentos(inputName.value.trim()).toUpperCase();
-        const dataBusc = inputDate.value; // formato "YYYY-MM-DD"
+        const dataBusc = inputDate.value; // "YYYY-MM-DD"
+        if (!dataBusc) return;
 
-        tbody.innerHTML = '';
-        noResults.hidden = true;
+        // monta nome do arquivo no padrão que você já gera no Colab:
+        // ensalamento_detalhado_YYYYMMDD.json
+        const [ano, mes, dia] = dataBusc.split('-');
+        const filename = `ensalamento_detalhado_${ano}${mes}${dia}.json`;
+        const urlJson  = `${filename}?ts=${Date.now()}`;
 
-        const filtrados = dados.filter(item => {
-          const matchNome = termo === '' ||
-            removerAcentos(item.nome).toUpperCase().includes(termo);
-          const matchData = dataBusc === '' ||
-            item.data_aplicacao === dataBusc;
-          return matchNome && matchData;
-        });
-
-        if (filtrados.length === 0) {
-          table.hidden   = true;
-          noResults.hidden = false;
-        } else {
-          filtrados.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${item.nome}</td>
-              <td>${item.sala}</td>
-              <td>${item.carteira}</td>
-              <td>${item.data_aplicacao}</td>
-            `;
-            tbody.appendChild(tr);
+        fetch(urlJson, { cache: 'no-store' })
+          .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+          })
+          .then(dados => {
+            tbody.innerHTML = '';
+            const lista = Array.isArray(dados) ? dados : [dados];
+            if (lista.length === 0) {
+              table.hidden = true;
+              noResults.hidden = false;
+            } else {
+              noResults.hidden = true;
+              table.hidden = false;
+              lista.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${item.nome}</td>
+                  <td>${item.sala}</td>
+                  <td>${item.carteira}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            error.hidden = false;
           });
-          table.hidden = false;
-        }
       });
     });
   </script>
