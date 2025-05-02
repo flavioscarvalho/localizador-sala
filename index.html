@@ -16,7 +16,15 @@
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     th, td { border: 1px solid #ccc; padding: .75rem; text-align: left; }
     th { background-color: #e9e9e9; }
+
+    /* Mensagens genéricas continuam em vermelho */
     .message { margin-top: 1rem; color: #a00; }
+
+    /* Parágrafo de erro centralizado e em azul */
+    #error {
+      text-align: center;
+      color: blue;
+    }
   </style>
 </head>
 <body>
@@ -29,7 +37,9 @@
       <button id="btnSearch">Buscar</button>
     </div>
 
-    <p id="error" class="message" hidden>Erro ao carregar dados. Verifique o JSON.</p>
+    <p id="error" class="message" hidden>
+      Erro ao carregar dados. Verifique o JSON.
+    </p>
 
     <table id="resultsTable" hidden>
       <thead>
@@ -38,7 +48,9 @@
       <tbody></tbody>
     </table>
 
-    <p id="noResults" class="message" hidden>Nenhum aluno encontrado.</p>
+    <p id="noResults" class="message" hidden>
+      Nenhum aluno encontrado.
+    </p>
   </div>
 
   <script>
@@ -100,7 +112,7 @@
           })
           .catch(err => {
             console.error('Erro ao carregar JSON:', err);
-            errorMsg.textContent = 'Prezado(a), a data selecionada não foi encontrada. Em caso de dúvida, entre em contato com a Coordenação Pedagógica.';
+            errorMsg.textContent = 'Não localizamos a data informada. Caso necessite de esclarecimentos, por gentileza, entre em contato com a Coordenação Pedagógica.';
             errorMsg.hidden = false;
             table.hidden = true;
             noResults.hidden = true;
@@ -110,3 +122,4 @@
   </script>
 </body>
 </html>
+
