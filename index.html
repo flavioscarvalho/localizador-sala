@@ -5,41 +5,142 @@
   <!-- Evita cache no navegador/GitHub Pages -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LOCALIZADOR DE SALA – CNSG</title>
+  <title>Localizador de Sala – CNSG</title>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; background-color: #f9f9f9; }
-    .container { max-width: 800px; margin: auto; }
-    h1 { text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; }
-    .search-container { display: flex; margin-bottom: 1rem; }
-    input[type="date"], input[type="text"] { flex: 1; padding: .5rem; font-size: 1rem; }
-    button { width: 80px; padding: .5rem; font-size: 1rem; margin-left: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: .75rem; text-align: left; }
-    th { background-color: #e9e9e9; }
+    /* === Variáveis de cor === */
+    :root {
+      --cor-primaria: #0D335F;       /* Azul-escuro */
+      --cor-accent:   #E34E3D;       /* Vermelho/laranja */
+      --cor-fundo:    #FFFFFF;       /* Branco */
+      --cor-bg-sec:   #F2F2F2;       /* Cinza claro */
+      --cor-texto:    #1A1A1A;       /* Preto suave */
+      --cor-placeholder: #999999;    /* Cinza placeholder */
+    }
 
-    /* Mensagens genéricas continuam em vermelho */
-    .message { margin-top: 1rem; color: #a00; }
+    /* === Reset & Body === */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: var(--cor-fundo);
+      color: var(--cor-texto);
+      line-height: 1.6;
+    }
 
-    /* Parágrafo de erro centralizado e em azul */
-    #error {
+    /* === Header simples para dar contexto === */
+    .header {
+      background: var(--cor-primaria);
+      padding: 1rem;
       text-align: center;
-      color: blue;
+      color: #FFF;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    /* === Container centralizado === */
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--cor-primaria);
+    }
+
+    /* === Formulário de busca === */
+    .search-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .search-container input[type="date"],
+    .search-container input[type="text"] {
+      flex: 1;
+      border: none;
+      border-bottom: 2px solid var(--cor-primaria);
+      padding: 0.5rem 0;
+      font-size: 1rem;
+      outline: none;
+      background: transparent;
+      color: var(--cor-texto);
+    }
+    .search-container input::placeholder {
+      color: var(--cor-placeholder);
+    }
+    .search-container input:focus {
+      border-bottom-color: var(--cor-accent);
+    }
+
+    .search-container button {
+      background: var(--cor-primaria);
+      color: #FFF;
+      border: none;
+      padding: 0 1rem;
+      font-size: 1rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    .search-container button:hover {
+      background: var(--cor-accent);
+    }
+
+    /* === Tabela de resultados === */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: var(--cor-bg-sec);
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border: 1px solid #DDD;
+    }
+    th {
+      background: var(--cor-primaria);
+      color: #FFF;
+    }
+
+    /* === Mensagens de erro / sem resultados === */
+    .message {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 1rem;
+    }
+    #error {
+      color: var(--cor-accent);
+    }
+    #noResults {
+      color: var(--cor-primaria);
     }
   </style>
 </head>
 <body>
+  <div class="header">
+    Localizador de Sala – CNSG
+  </div>
+
   <div class="container">
-    <h1>LOCALIZADOR DE SALA – CNSG</h1>
+    <h1>Encontre a Sala do Aluno</h1>
 
     <div class="search-container">
-      <input type="date" id="dateSearch" />
-      <input type="text" id="search" placeholder="Digite o nome do aluno..." />
+      <input type="date" id="dateSearch" placeholder="Selecione a data" />
+      <input type="text" id="search" placeholder="Nome do aluno" />
       <button id="btnSearch">Buscar</button>
     </div>
 
-    <p id="error" class="message" hidden>
-      Erro ao carregar dados. Verifique o JSON.
-    </p>
+    <p id="error" class="message" hidden></p>
 
     <table id="resultsTable" hidden>
       <thead>
@@ -48,13 +149,12 @@
       <tbody></tbody>
     </table>
 
-    <p id="noResults" class="message" hidden>
-      Nenhum aluno encontrado.
-    </p>
+    <p id="noResults" class="message" hidden>Nenhum aluno encontrado.</p>
   </div>
 
   <script>
-    // Remove acentos de uma string
+    // === Lógica JavaScript inalterada ===
+
     function removerAcentos(str) {
       return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     }
@@ -69,7 +169,7 @@
       const errorMsg   = document.getElementById('error');
 
       btn.addEventListener('click', () => {
-        const dataBusc = dateInput.value;  // "YYYY-MM-DD"
+        const dataBusc = dateInput.value;
         if (!dataBusc) {
           errorMsg.textContent = 'Selecione a data da aplicação.';
           errorMsg.hidden = false;
@@ -88,11 +188,12 @@
           })
           .then(dados => {
             errorMsg.hidden = true;
-            const termo = removerAcentos(nameInput.value.trim()).toUpperCase();
             tbody.innerHTML = '';
+            const termo = removerAcentos(nameInput.value.trim()).toUpperCase();
             const filtrados = dados.filter(item =>
               removerAcentos(item.nome).toUpperCase().includes(termo)
             );
+
             if (filtrados.length === 0) {
               table.hidden = true;
               noResults.hidden = false;
@@ -112,7 +213,9 @@
           })
           .catch(err => {
             console.error('Erro ao carregar JSON:', err);
-            errorMsg.textContent = 'Não localizamos a data informada. Caso necessite de esclarecimentos, por gentileza, entre em contato com a Coordenação Pedagógica.';
+            errorMsg.textContent = 
+              'Não localizamos a data informada. Caso necessite de esclarecimentos, ' +
+              'por gentileza, entre em contato com a Coordenação Pedagógica.';
             errorMsg.hidden = false;
             table.hidden = true;
             noResults.hidden = true;
