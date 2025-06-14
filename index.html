@@ -7,12 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Localizador de Sala – CNSG</title>
 
-  <script
-    type="text/javascript"
-    src="https://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=F13MhXc2cpmrQ8a7mPtn7qp8LRbHEAGOKAghTApEzUQembcRLoKEHZdSdNy16x5s9qD7CKluShkQikOeGU1F7vOeY2DxHhA-ZpYjAy7OG18"
-    charset="UTF-8">
-  </script>
-
   <style>
     /* === Variáveis de cor === */
     :root {
@@ -174,7 +168,7 @@
           <tr>
             <th>Nome</th>
             <th>Sala</th>
-            <th>Carteira</th>
+            <!-- A coluna "Carteira" foi removida daqui -->
           </tr>
         </thead>
         <tbody></tbody>
@@ -185,7 +179,6 @@
   </div>
 
   <script>
-    // === Lógica JavaScript inalterada ===
     function removerAcentos(str) {
       return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     }
@@ -233,10 +226,10 @@
               noResults.hidden = true;
               filtrados.forEach(item => {
                 const tr = document.createElement('tr');
+                // A linha que adicionava a célula da carteira foi removida daqui
                 tr.innerHTML = `
                   <td>${item.nome}</td>
                   <td>${item.sala}</td>
-                  <td>${item.carteira}</td>
                 `;
                 tbody.appendChild(tr);
               });
