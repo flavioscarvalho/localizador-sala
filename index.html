@@ -1,252 +1,48 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <!-- Evita cache no navegador/GitHub Pages -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Localizador de Sala – CNSG</title>
-
-  <style>
-    /* === Variáveis de cor === */
-    :root {
-      --cor-primaria: #0D335F;
-      --cor-accent:   #E34E3D;
-      --cor-fundo:    #FFFFFF;
-      --cor-bg-sec:   #F2F2F2;
-      --cor-texto:    #1A1A1A;
-      --cor-placeholder: #999999;
-    }
-
-    /* === Reset e corpo === */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: 'Roboto', Arial, sans-serif;
-      background: var(--cor-fundo);
-      color: var(--cor-texto);
-      line-height: 1.6;
-      padding: 1rem;
-    }
-
-    /* === Header simples === */
-    .header {
-      background: var(--cor-primaria);
-      padding: 1rem;
-      text-align: center;
-      color: #FFF;
-      font-size: 1.25rem;
-      font-weight: bold;
-      border-radius: 4px;
-    }
-
-    /* === Container centralizado === */
-    .container {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 1.5rem;
-      color: var(--cor-primaria);
-    }
-
-    /* === Formulário de busca === */
-    .search-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .search-container input[type="date"],
-    .search-container input[type="text"] {
-      flex: 1 1 200px;
-      border: none;
-      border-bottom: 2px solid var(--cor-primaria);
-      padding: 0.5rem 0;
-      font-size: 1rem;
-      background: transparent;
-      outline: none;
-      color: var(--cor-texto);
-    }
-    .search-container input::placeholder {
-      color: var(--cor-placeholder);
-    }
-    .search-container input:focus {
-      border-bottom-color: var(--cor-accent);
-    }
-    .search-container button {
-      flex: 0 0 auto;
-      background: var(--cor-primaria);
-      color: #FFF;
-      border: none;
-      padding: 0 1rem;
-      font-size: 1rem;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background 0.3s ease;
-    }
-    .search-container button:hover {
-      background: var(--cor-accent);
-    }
-
-    /* === Mensagens de estado === */
-    .message {
-      margin-top: 1rem;
-      text-align: center;
-      font-size: 1rem;
-    }
-    #error { color: var(--cor-accent); }
-    #noResults { color: var(--cor-primaria); }
-
-    /* === Tabela responsiva === */
-    .table-wrapper {
-      overflow-x: auto;
-      margin-top: 1rem;
-      background: var(--cor-bg-sec);
-      border-radius: 4px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 400px;
-    }
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border: 1px solid #DDD;
-    }
-    th {
-      background: var(--cor-primaria);
-      color: #FFF;
-    }
-
-    /* === Media Queries === */
-    @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      .search-container {
-        flex-direction: column;
-      }
-      .search-container input,
-      .search-container button {
-        width: 100%;
-        margin: 0;
-      }
-      .search-container button {
-        margin-top: 0.5rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Ensalamento</title>
+    <link rel="stylesheet" href__="styles.css">
 </head>
-
 <body>
-  <div class="header">
-    Localizador de Sala – CNSG
-  </div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">📚</div>
+            <h1>Consulta de Ensalamento</h1>
+            <p class="subtitle">Descubra sua sala de prova</p>
+        </header>
 
-  <div class="container">
-    <h1>Encontre a Sala do Aluno</h1>
+        <div class="search-card">
+            <div class="input-group">
+                <label for="studentName">Nome Completo do Aluno:</label>
+                <input 
+                    type="text" 
+                    id="studentName" 
+                    placeholder="Ex: João Silva Santos"
+                    autocomplete="off"
+                >
+            </div>
+            
+            <button onclick="buscarAluno()" class="btn-search">
+                🔍 Buscar Localização
+            </button>
+        </div>
 
-    <div class="search-container">
-      <input type="date" id="dateSearch" placeholder="Selecione a data" />
-      <input type="text" id="search" placeholder="Nome do aluno" />
-      <button id="btnSearch">Buscar</button>
+        <div id="result" class="result hidden"></div>
+        
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Buscando...</p>
+        </div>
+
+        <footer class="footer">
+            <p>Sistema de Gestão Escolar - Carvalho</p>
+            <p class="footer-small">Powered by base44</p>
+        </footer>
     </div>
 
-    <p id="error" class="message" hidden></p>
-
-    <div class="table-wrapper" hidden id="tableWrapper">
-      <table id="resultsTable">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Sala</th>
-            <!-- A coluna "Carteira" foi removida daqui -->
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <p id="noResults" class="message" hidden>Nenhum aluno encontrado.</p>
-  </div>
-
-  <script>
-    function removerAcentos(str) {
-      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const dateInput  = document.getElementById('dateSearch');
-      const nameInput  = document.getElementById('search');
-      const btn        = document.getElementById('btnSearch');
-      const wrapper    = document.getElementById('tableWrapper');
-      const table      = document.getElementById('resultsTable');
-      const tbody      = table.querySelector('tbody');
-      const noResults  = document.getElementById('noResults');
-      const errorMsg   = document.getElementById('error');
-
-      btn.addEventListener('click', () => {
-        const dataBusc = dateInput.value;
-        if (!dataBusc) {
-          errorMsg.textContent = 'Selecione a data da aplicação.';
-          errorMsg.hidden = false;
-          wrapper.hidden = true;
-          noResults.hidden = true;
-          return;
-        }
-
-        const [ano, mes, dia] = dataBusc.split('-');
-        const filename = `ensalamento_${dia}_${mes}_${ano}.json?ts=${Date.now()}`;
-
-        fetch(filename, { cache: 'no-store' })
-          .then(response => {
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-          })
-          .then(dados => {
-            errorMsg.hidden = true;
-            tbody.innerHTML = '';
-            const termo = removerAcentos(nameInput.value.trim()).toUpperCase();
-            const filtrados = dados.filter(item =>
-              removerAcentos(item.nome).toUpperCase().includes(termo)
-            );
-
-            if (filtrados.length === 0) {
-              wrapper.hidden = true;
-              noResults.hidden = false;
-            } else {
-              noResults.hidden = true;
-              filtrados.forEach(item => {
-                const tr = document.createElement('tr');
-                // A linha que adicionava a célula da carteira foi removida daqui
-                tr.innerHTML = `
-                  <td>${item.nome}</td>
-                  <td>${item.sala}</td>
-                `;
-                tbody.appendChild(tr);
-              });
-              wrapper.hidden = false;
-            }
-          })
-          .catch(err => {
-            console.error('Erro ao carregar JSON:', err);
-            errorMsg.textContent =
-              'Não localizamos a data informada. Caso necessite de esclarecimentos, ' +
-              'por gentileza, entre em contato com a Coordenação Pedagógica.';
-            errorMsg.hidden = false;
-            wrapper.hidden = true;
-            noResults.hidden = true;
-          });
-      });
-    });
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
