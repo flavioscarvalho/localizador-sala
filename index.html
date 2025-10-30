@@ -17,7 +17,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column; /* Permite que o footer fique abaixo */
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -46,7 +46,7 @@
             justify-content: center;
             font-size: 40px;
             margin: 0 auto 20px auto;
-            color: white; /* Adicionei para o emoji ficar visível */
+            color: white;
         }
 
         h1 {
@@ -78,21 +78,42 @@
             font-size: 14px;
         }
 
-        input {
+        /* Estilo unificado para input e select */
+        input,
+        select {
             width: 100%;
             padding: 15px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s;
+            /* Garante que o select tenha a mesma aparência */
+            background-color: white; 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234A5568%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-13%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2013l128%20128c3.6%203.6%207.8%205.4%2013%205.4s9.4-1.8%2013-5.4l128-128c3.6-3.6%205.4-7.8%205.4-13%200-5-1.8-9.4-5.4-13z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 10px;
         }
 
-        input:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        /* Estilo para campos desabilitados */
+        input:disabled,
+        select:disabled,
+        .btn-search:disabled {
+            background-color: #f0f4f8;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
         .btn-search {
             width: 100%;
             padding: 15px;
@@ -103,15 +124,15 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
 
-        .btn-search:hover {
+        .btn-search:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-search:active {
+        .btn-search:active:not(:disabled) {
             transform: translateY(0);
         }
 
@@ -185,17 +206,16 @@
         }
 
         .footer {
-            /* Estilo do footer mantido, mas agora fora do container principal */
             background: white;
             padding: 20px;
             text-align: center;
             color: #718096;
             font-size: 14px;
-            margin-top: 20px; /* Espaçamento do container */
+            margin-top: 20px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 600px; /* Mesma largura do container */
+            max-width: 600px;
         }
 
         .footer-small {
@@ -205,17 +225,9 @@
         }
 
         @media (max-width: 640px) {
-            .header {
-                padding: 30px 20px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .search-card, .result, .loading {
-                padding: 20px;
-            }
+            .header { padding: 30px 20px; }
+            h1 { font-size: 24px; }
+            .search-card, .result, .loading { padding: 20px; }
         }
     </style>
 </head>
@@ -230,11 +242,22 @@
         </div>
         
         <div class="search-card">
+            
             <div class="input-group">
-                <label for="studentName">Nome Completo do Aluno</label>
-                <input type="text" id="studentName" placeholder="Digite seu nome aqui...">
+                <label for="dateSelector">1. Selecione a Data da Prova</label>
+                <select id="dateSelector">
+                    <option value="">Carregando datas...</option>
+                </select>
             </div>
-            <button class="btn-search" onclick="buscarAluno()">Buscar Local</button>
+
+            <div class="input-group">
+                <label for="studentName">2. Digite o Nome Completo do Aluno</label>
+                <input type="text" id="studentName" placeholder="Digite seu nome aqui..." disabled>
+            </div>
+            
+            <button id="searchButton" class="btn-search" onclick="buscarAluno()" disabled>
+                Buscar Local
+            </button>
         </div>
         
         <div id="loading" class="loading hidden">
@@ -253,9 +276,100 @@
     </footer>
 
     <script>
-        // Função para normalizar texto (remover acentos e converter para minúsculas)
+        // URL do arquivo JSON (assumindo que ainda é 'ensalamento.json')
+        const DADOS_URL = 'ensalamento.json';
+        
+        // Variável global para armazenar todos os dados carregados
+        let allEnsalamentoData = [];
+
+        // Referências aos elementos do DOM
+        const dateSelector = document.getElementById('dateSelector');
+        const studentNameInput = document.getElementById('studentName');
+        const searchButton = document.getElementById('searchButton');
+        const resultDiv = document.getElementById('result');
+        const loadingDiv = document.getElementById('loading');
+
+        // 1. Inicia o carregamento dos dados quando a página é carregada
+        document.addEventListener('DOMContentLoaded', carregarDadosIniciais);
+
+        /**
+         * Carrega os dados do JSON, extrai as datas únicas e popula o seletor
+         */
+        async function carregarDadosIniciais() {
+            try {
+                const url = `${DADOS_URL}?t=${new Date().getTime()}`; // Prevenção de cache
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Falha ao carregar o arquivo de ensalamento.');
+                }
+                
+                allEnsalamentoData = await response.json();
+                
+                if (!Array.isArray(allEnsalamentoData) || allEnsalamentoData.length === 0) {
+                     throw new Error('Arquivo de dados vazio ou em formato incorreto.');
+                }
+
+                popularSeletorDeDatas(allEnsalamentoData);
+
+            } catch (error) {
+                console.error('Erro inicial:', error);
+                showError('Não foi possível carregar os dados das provas. Entre em contato com a escola.');
+                dateSelector.innerHTML = `<option value="">Erro ao carregar datas</option>`;
+            }
+        }
+
+        /**
+         * Pega a lista de dados, extrai datas únicas e as coloca no <select>
+         */
+        function popularSeletorDeDatas(data) {
+            // Extrai todas as datas
+            const todasAsDatas = data.map(aluno => aluno.data_aplicacao);
+            // Filtra para ter apenas datas únicas e remove valores nulos/undefined
+            const datasUnicas = [...new Set(todasAsDatas)].filter(Boolean);
+            
+            // Ordena as datas (mais recente primeiro)
+            datasUnicas.sort().reverse(); 
+            
+            // Limpa o seletor
+            dateSelector.innerHTML = '';
+            
+            // Adiciona a opção padrão
+            dateSelector.add(new Option('Selecione uma data', ''));
+
+            // Adiciona cada data como uma opção formatada
+            datasUnicas.forEach(isoDate => {
+                const dataFormatada = formatarDataBR(isoDate);
+                dateSelector.add(new Option(dataFormatada, isoDate));
+            });
+
+            // Habilita o seletor de data
+            dateSelector.disabled = false;
+            
+            // Adiciona o "ouvinte" para habilitar o campo de nome
+            dateSelector.addEventListener('change', onDateSelectChange);
+        }
+
+        /**
+         * Habilita/desabilita o campo de nome e botão quando uma data é selecionada
+         */
+        function onDateSelectChange() {
+            const dataSelecionada = dateSelector.value;
+            if (dataSelecionada) {
+                studentNameInput.disabled = false;
+                searchButton.disabled = false;
+                studentNameInput.focus(); // Foca no campo de nome
+            } else {
+                studentNameInput.disabled = true;
+                searchButton.disabled = true;
+            }
+        }
+
+        /**
+         * Função para normalizar texto (remover acentos e converter para minúsculas)
+         */
         function normalizeText(text) {
-            if (!text) return ""; // Garante que não quebre se o texto for nulo
+            if (!text) return "";
             return text
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
@@ -263,13 +377,19 @@
                 .trim();
         }
 
-        // Função principal de busca
-        async function buscarAluno() {
-            const studentName = document.getElementById('studentName').value.trim();
-            const resultDiv = document.getElementById('result');
-            const loadingDiv = document.getElementById('loading');
+        /**
+         * Função principal de busca (chamada pelo botão)
+         */
+        function buscarAluno() {
+            const dataSelecionada = dateSelector.value;
+            const nomeDigitado = studentNameInput.value.trim();
             
-            if (studentName.length < 3) { // Exige mínimo de 3 caracteres
+            // Validações
+            if (!dataSelecionada) {
+                showError('Por favor, selecione uma data antes de buscar.');
+                return;
+            }
+            if (nomeDigitado.length < 3) {
                 showError('Por favor, digite pelo menos 3 letras do seu nome.');
                 return;
             }
@@ -278,142 +398,94 @@
             resultDiv.classList.add('hidden');
             loadingDiv.classList.remove('hidden');
             
-            try {
-                // Adiciona um parâmetro "cache-busting" para sempre pegar o arquivo mais novo
-                const url = `ensalamento.json?t=${new Date().getTime()}`;
-                
-                // Carregar dados do JSON
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error('Arquivo de ensalamento não encontrado. Entre em contato com a escola.');
-                }
-                
-                const data = await response.json();
-                
-                // Normalizar nome buscado
-                const searchName = normalizeText(studentName);
-                
-                // Buscar aluno em todas as salas
-                let alunosEncontrados = [];
-                let salaDoAluno = null;
+            const nomeNormalizado = normalizeText(nomeDigitado);
 
-                // Verifica se a estrutura de dados esperada existe
-                if (!data || !data.mapeamento_salas_aplicacao) {
-                    throw new Error('O formato do arquivo de dados está incorreto.');
-                }
-                
-                for (const [nomeSala, dadosSala] of Object.entries(data.mapeamento_salas_aplicacao)) {
-                    if (dadosSala && dadosSala.alunos_presentes) {
-                        const aluno = dadosSala.alunos_presentes.find(a =>  {
-                            const nomeCompletoNormalizado = normalizeText(a.nome_completo);
-                            // Verifica se o nome buscado está contido no nome completo do aluno
-                            return nomeCompletoNormalizado.includes(searchName);
-                        });
-                        
-                        if (aluno) {
-                            // Encontramos uma correspondência. Armazena e PARA de procurar.
-                            alunosEncontrados.push({
-                                ...aluno,
-                                salaEncontrada: nomeSala // Adiciona a sala ao objeto do aluno
-                            });
-                        }
-                    }
-                }
-                
-                // Avalia os resultados
-                if (alunosEncontrados.length === 1) {
-                    // Cenário ideal: 1 resultado
-                    const aluno = alunosEncontrados[0];
-                    showSuccess(aluno, aluno.salaEncontrada, data.metadata);
-                } else if (alunosEncontrados.length > 1) {
-                    // Vários resultados (ex: buscou por "Silva")
-                    showError(`Foram encontrados ${alunosEncontrados.length} resultados. Por favor, digite seu nome completo para desambiguação.`);
-                } else {
-                    // Nenhum resultado
-                    showError(`Aluno "${studentName}" não encontrado. Verifique se o nome está correto ou entre em contato com a escola.`);
-                }
-                
-            } catch (error) {
-                console.error('Erro ao buscar:', error);
-                showError('Erro ao carregar os dados. Tente novamente mais tarde ou entre em contato com a escola.');
-            } finally {
-                loadingDiv.classList.add('hidden');
+            // Filtra os dados (que já estão na memória)
+            const resultados = allEnsalamentoData.filter(aluno => {
+                const dataMatch = aluno.data_aplicacao === dataSelecionada;
+                const nameMatch = normalizeText(aluno.nome).includes(nomeNormalizado);
+                return dataMatch && nameMatch;
+            });
+
+            // Esconde o loading
+            loadingDiv.classList.add('hidden');
+
+            // Processa os resultados
+            if (resultados.length === 1) {
+                showSuccess(resultados[0]);
+            } else if (resultados.length > 1) {
+                showError(`Foram encontrados ${resultados.length} resultados. Por favor, seja mais específico (use nome e sobrenome).`);
+            } else {
+                showError(`Nenhum aluno encontrado com o nome "${nomeDigitado}" para esta data. Verifique a digitação.`);
             }
         }
 
-        // Mostrar resultado de sucesso
-        function showSuccess(aluno, sala, metadata) {
-            const resultDiv = document.getElementById('result');
-            
+        /**
+         * Formata uma data 'AAAA-MM-DD' para 'DD/MM/AAAA'
+         */
+        function formatarDataBR(isoDate) {
+            try {
+                const [ano, mes, dia] = isoDate.split('-');
+                return `${dia}/${mes}/${ano}`;
+            } catch (e) {
+                return isoDate; // Retorna a data original se o formato falhar
+            }
+        }
+
+        /**
+         * Mostra o card de sucesso (adaptado para a nova estrutura de dados)
+         */
+        function showSuccess(aluno) {
             resultDiv.className = 'result success';
             resultDiv.innerHTML = `
                 <h2>✅ Localização Encontrada!</h2>
                 
                 <div class="info-item">
                     <strong>👨‍🎓 Aluno</strong>
-                    <span>${aluno.nome_completo}</span>
+                    <span>${aluno.nome}</span>
                 </div>
                 
                 <div class="info-item">
-                    <strong>📚 Avaliação</strong>
-                    <span>${metadata.nome_ensalamento}</span>
+                    <strong>📅 Data da Prova</strong>
+                    <span>${formatarDataBR(aluno.data_aplicacao)}</span>
                 </div>
                 
                 <div class="info-item">
-                    <strong>🏫 Sala de Aplicação</strong>
-                    <span>${sala}</span>
+                    <strong>🏫 Sala</strong>
+                    <span>${aluno.sala}</span>
                 </div>
                 
                 <div class="info-item">
-                    <strong>📍 Posição</strong>
-                    <span>Fila ${aluno.posicao.fila}, Carteira ${aluno.posicao.coluna} (Assento ${aluno.posicao.assento})</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>📌 Turma de Origem</strong>
-                    <span>${aluno.turma_origem}</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>📅 Data</strong>
-                    <span>${new Date(metadata.data_aplicacao + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>🕐 Horário</strong>
-                    <span>${metadata.horario_aplicacao}</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>📝 Disciplina(s)</strong>
-                    <span>${metadata.disciplinas}</span>
+                    <strong>📍 Carteira</strong>
+                    <span>${aluno.carteira}</span>
                 </div>
             `;
-            
             resultDiv.classList.remove('hidden');
         }
 
-        // Mostrar erro
+        /**
+         * Mostra o card de erro
+         */
         function showError(message) {
-            const resultDiv = document.getElementById('result');
-            
             resultDiv.className = 'result error';
             resultDiv.innerHTML = `
                 <h2>❌ Erro na Consulta</h2>
                 <p style="font-size: 16px; line-height: 1.6; margin-top: 15px;">${message}</p>
             `;
-            
             resultDiv.classList.remove('hidden');
         }
 
-        // Permitir busca ao pressionar Enter
-        document.getElementById('studentName').addEventListener('keypress', function(e) {
+        // Permitir busca ao pressionar Enter no campo de nome
+        studentNameInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Impede o envio de formulário (caso exista)
+                e.preventDefault();
                 buscarAluno();
             }
         });
+
+        // Adiciona um listener ao botão de busca
+        searchButton.addEventListener('click', buscarAluno);
+        
     </script>
 
 </body>
