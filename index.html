@@ -3,46 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Ensalamento</title>
-    <link rel="stylesheet" href__="styles.css">
+    <title>Localizador de Sala</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; /* Permite que o footer fique abaixo */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto 20px auto;
+            color: white; /* Adicionei para o emoji ficar visível */
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .search-card {
+            background: white;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-search {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-search:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .result.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .result h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .info-item strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .info-item span {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .loading {
+            background: white;
+            padding: 40px;
+            border-radius: 0 0 20px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .footer {
+            /* Estilo do footer mantido, mas agora fora do container principal */
+            background: white;
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-top: 20px; /* Espaçamento do container */
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px; /* Mesma largura do container */
+        }
+
+        .footer-small {
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .search-card, .result, .loading {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <div class="logo">📚</div>
-            <h1>Consulta de Ensalamento</h1>
-            <p class="subtitle">Descubra sua sala de prova</p>
-        </header>
 
+    <div class="container">
+        
+        <div class="header">
+            <div class="logo">🔍</div>
+            <h1>Localizador de Sala</h1>
+            <p class="subtitle">Consulte seu local de prova.</p>
+        </div>
+        
         <div class="search-card">
             <div class="input-group">
-                <label for="studentName">Nome Completo do Aluno:</label>
-                <input 
-                    type="text" 
-                    id="studentName" 
-                    placeholder="Ex: João Silva Santos"
-                    autocomplete="off"
-                >
+                <label for="studentName">Nome Completo do Aluno</label>
+                <input type="text" id="studentName" placeholder="Digite seu nome aqui...">
             </div>
-            
-            <button onclick="buscarAluno()" class="btn-search">
-                🔍 Buscar Localização
-            </button>
+            <button class="btn-search" onclick="buscarAluno()">Buscar Local</button>
         </div>
-
-        <div id="result" class="result hidden"></div>
         
         <div id="loading" class="loading hidden">
             <div class="spinner"></div>
             <p>Buscando...</p>
         </div>
 
-        <footer class="footer">
-            <p>Sistema de Gestão Escolar - Carvalho</p>
-            <p class="footer-small">Powered by base44</p>
-        </footer>
+        <div id="result" class="result hidden">
+            </div>
+        
     </div>
 
-    <script src="script.js"></script>
+    <footer class="footer">
+        <p>Sistema de Ensalamento</p>
+        <p class="footer-small">Desenvolvido para a comunidade escolar.</p>
+    </footer>
+
+    <script>
+        // Função para normalizar texto (remover acentos e converter para minúsculas)
+        function normalizeText(text) {
+            if (!text) return ""; // Garante que não quebre se o texto for nulo
+            return text
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        // Função principal de busca
+        async function buscarAluno() {
+            const studentName = document.getElementById('studentName').value.trim();
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            
+            if (studentName.length < 3) { // Exige mínimo de 3 caracteres
+                showError('Por favor, digite pelo menos 3 letras do seu nome.');
+                return;
+            }
+            
+            // Mostrar loading
+            resultDiv.classList.add('hidden');
+            loadingDiv.classList.remove('hidden');
+            
+            try {
+                // Adiciona um parâmetro "cache-busting" para sempre pegar o arquivo mais novo
+                const url = `ensalamento.json?t=${new Date().getTime()}`;
+                
+                // Carregar dados do JSON
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Arquivo de ensalamento não encontrado. Entre em contato com a escola.');
+                }
+                
+                const data = await response.json();
+                
+                // Normalizar nome buscado
+                const searchName = normalizeText(studentName);
+                
+                // Buscar aluno em todas as salas
+                let alunosEncontrados = [];
+                let salaDoAluno = null;
+
+                // Verifica se a estrutura de dados esperada existe
+                if (!data || !data.mapeamento_salas_aplicacao) {
+                    throw new Error('O formato do arquivo de dados está incorreto.');
+                }
+                
+                for (const [nomeSala, dadosSala] of Object.entries(data.mapeamento_salas_aplicacao)) {
+                    if (dadosSala && dadosSala.alunos_presentes) {
+                        const aluno = dadosSala.alunos_presentes.find(a =>  {
+                            const nomeCompletoNormalizado = normalizeText(a.nome_completo);
+                            // Verifica se o nome buscado está contido no nome completo do aluno
+                            return nomeCompletoNormalizado.includes(searchName);
+                        });
+                        
+                        if (aluno) {
+                            // Encontramos uma correspondência. Armazena e PARA de procurar.
+                            alunosEncontrados.push({
+                                ...aluno,
+                                salaEncontrada: nomeSala // Adiciona a sala ao objeto do aluno
+                            });
+                        }
+                    }
+                }
+                
+                // Avalia os resultados
+                if (alunosEncontrados.length === 1) {
+                    // Cenário ideal: 1 resultado
+                    const aluno = alunosEncontrados[0];
+                    showSuccess(aluno, aluno.salaEncontrada, data.metadata);
+                } else if (alunosEncontrados.length > 1) {
+                    // Vários resultados (ex: buscou por "Silva")
+                    showError(`Foram encontrados ${alunosEncontrados.length} resultados. Por favor, digite seu nome completo para desambiguação.`);
+                } else {
+                    // Nenhum resultado
+                    showError(`Aluno "${studentName}" não encontrado. Verifique se o nome está correto ou entre em contato com a escola.`);
+                }
+                
+            } catch (error) {
+                console.error('Erro ao buscar:', error);
+                showError('Erro ao carregar os dados. Tente novamente mais tarde ou entre em contato com a escola.');
+            } finally {
+                loadingDiv.classList.add('hidden');
+            }
+        }
+
+        // Mostrar resultado de sucesso
+        function showSuccess(aluno, sala, metadata) {
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h2>✅ Localização Encontrada!</h2>
+                
+                <div class="info-item">
+                    <strong>👨‍🎓 Aluno</strong>
+                    <span>${aluno.nome_completo}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>📚 Avaliação</strong>
+                    <span>${metadata.nome_ensalamento}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>🏫 Sala de Aplicação</strong>
+                    <span>${sala}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>📍 Posição</strong>
+                    <span>Fila ${aluno.posicao.fila}, Carteira ${aluno.posicao.coluna} (Assento ${aluno.posicao.assento})</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>📌 Turma de Origem</strong>
+                    <span>${aluno.turma_origem}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>📅 Data</strong>
+                    <span>${new Date(metadata.data_aplicacao + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>🕐 Horário</strong>
+                    <span>${metadata.horario_aplicacao}</span>
+                </div>
+                
+                <div class="info-item">
+                    <strong>📝 Disciplina(s)</strong>
+                    <span>${metadata.disciplinas}</span>
+                </div>
+            `;
+            
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Mostrar erro
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                <h2>❌ Erro na Consulta</h2>
+                <p style="font-size: 16px; line-height: 1.6; margin-top: 15px;">${message}</p>
+            `;
+            
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Permitir busca ao pressionar Enter
+        document.getElementById('studentName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Impede o envio de formulário (caso exista)
+                buscarAluno();
+            }
+        });
+    </script>
+
 </body>
 </html>
