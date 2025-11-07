@@ -304,11 +304,12 @@
 
             try {
                 // --- ATUALIZAÇÃO ESTÁ AQUI ---
-                // Adicionamos um "cache buster" para forçar o navegador
-                // a baixar o arquivo mais recente e não usar a versão em cache.
+                // Adicionamos a barra "/" no início do nome do arquivo
+                // para garantir que ele seja buscado a partir da raiz do site.
                 const cacheBuster = `?v=${new Date().getTime()}`;
+                const caminhoAbsoluto = "/" + nomeArquivo; 
                 
-                const response = await fetch(nomeArquivo + cacheBuster);
+                const response = await fetch(caminhoAbsoluto + cacheBuster);
                 // --- FIM DA ATUALIZAÇÃO ---
 
                 if (!response.ok) {
@@ -345,7 +346,7 @@
 
                 // Log detalhado para o console (para você, o desenvolvedor, depurar)
                 console.error('Falha detalhada ao buscar o arquivo:', error.message);
-                console.error('Arquivo que o sistema tentou buscar:', nomeArquivo);
+                console.error('Arquivo que o sistema tentou buscar:', "/" + nomeArquivo);
 
                 // Mensagem amigável para o usuário
                 const dataFormatada = dataInput.split('-').reverse().join('/');
