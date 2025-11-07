@@ -294,42 +294,36 @@
                 return;
             }
 
-            // Converte a data para o formato do arquivo: DD_MM_YYYY
             const [ano, mes, dia] = dataInput.split('-');
             const nomeArquivo = `ensalamento_${dia}_${mes}_${ano}.json`;
 
-            // Mostra loading
             loading.classList.add('active');
             resultado.style.display = 'none';
 
             try {
-                // --- ATUALIZAÇÃO ESTÁ AQUI ---
-                // Adicionamos a barra "/" no início do nome do arquivo
-                // para garantir que ele seja buscado a partir da raiz do site.
                 const cacheBuster = `?v=${new Date().getTime()}`;
+                // Caminho absoluto com a barra "/"
                 const caminhoAbsoluto = "/" + nomeArquivo; 
                 
                 const response = await fetch(caminhoAbsoluto + cacheBuster);
-                // --- FIM DA ATUALIZAÇÃO ---
 
                 if (!response.ok) {
-                    // Lança um erro mais específico
-                    throw new Error(`Erro ${response.status}: Arquivo não encontrado ou sem permissão.`);
+                    throw new Error(`Erro ${response.status}: Arquivo não encontrado.`);
                 }
 
                 const dados = await response.json();
 
-                // Remove acentos para busca mais flexível
                 const normalizarTexto = (texto) => {
                     return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
                 };
 
                 const nomeNormalizado = normalizarTexto(nomeInput);
                 
-                // Busca o aluno
                 const aluno = dados.find(item => {
+                    // Adicionando verificação para caso 'item.nome' não exista
+                    if (!item || !item.nome) return false; 
+                    
                     const nomeCompletoNormalizado = normalizarTexto(item.nome);
-                    // Verifica se o nome digitado está contido no nome completo
                     return nomeCompletoNormalizado.includes(nomeNormalizado);
                 });
                 
@@ -343,12 +337,7 @@
 
             } catch (error) {
                 loading.classList.remove('active');
-
-                // Log detalhado para o console (para você, o desenvolvedor, depurar)
-                console.error('Falha detalhada ao buscar o arquivo:', error.message);
-                console.error('Arquivo que o sistema tentou buscar:', "/" + nomeArquivo);
-
-                // Mensagem amigável para o usuário
+                console.error('Falha detalhada ao buscar ou processar:', error.message);
                 const dataFormatada = dataInput.split('-').reverse().join('/');
                 mostrarErro(`Não foi possível localizar o arquivo de ensalamento para a data ${dataFormatada}. Verifique se a data está correta ou entre em contato com a secretaria.`);
             }
@@ -405,6 +394,10 @@
         }
 
         function formatarData(dataISO) {
+            // Verificação de segurança para o caso de a data estar mal formatada no JSON
+            if (!dataISO || !dataISO.includes('-')) {
+                return 'Data Indefinida';
+            }
             const [ano, mes, dia] = dataISO.split('-');
             return `${dia}/${mes}/${ano}`;
         }
