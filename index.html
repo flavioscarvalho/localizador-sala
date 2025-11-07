@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Localizador de Sala</title>
-
+    <title>Consulta de Ensalamento - CNSG</title>
     <style>
         * {
             margin: 0;
@@ -17,476 +16,387 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
         .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 600px;
             width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header {
-            background: white;
-            border-radius: 20px 20px 0 0;
-            padding: 40px 30px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
         }
 
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 20px auto;
-            color: white;
-        }
-
-        h1 {
-            color: #2d3748;
-            font-size: 32px;
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
             margin-bottom: 10px;
         }
 
-        .subtitle {
-            color: #718096;
+        .header p {
+            color: #666;
             font-size: 16px;
         }
 
-        .search-card {
-            background: white;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .input-group {
-            margin-bottom: 20px;
+        .form-group {
+            margin-bottom: 25px;
         }
 
         label {
             display: block;
-            color: #4a5568;
+            color: #333;
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 14px;
         }
 
-        /* Estilo unificado para input e select */
-        input,
-        select {
+        input[type="date"],
+        input[type="text"] {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e2e8f0;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
-            transition: all 0.3s;
-            /* Garante que o select tenha a mesma aparência */
-            background-color: white; 
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234A5568%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-13%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2013l128%20128c3.6%203.6%207.8%205.4%2013%205.4s9.4-1.8%2013-5.4l128-128c3.6-3.6%205.4-7.8%205.4-13%200-5-1.8-9.4-5.4-13z%22%2F%3E%3C%2Fsvg%3E');
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 10px;
+            transition: all 0.3s ease;
         }
 
-        input:focus,
-        select:focus {
+        input[type="date"]:focus,
+        input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        /* Estilo para campos desabilitados */
-        input:disabled,
-        select:disabled,
-        .btn-search:disabled {
-            background-color: #f0f4f8;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        
-        .btn-search {
+        .btn-buscar {
             width: 100%;
             padding: 15px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .btn-search:hover:not(:disabled) {
+        .btn-buscar:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-search:active:not(:disabled) {
+        .btn-buscar:active {
             transform: translateY(0);
         }
 
-        .result {
-            background: white;
-            padding: 30px;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        .btn-buscar:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        .result.success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        .resultado {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .resultado.sucesso {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             color: white;
+            display: block;
         }
 
-        .result.error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        .resultado.erro {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
             color: white;
+            display: block;
         }
 
-        .result h2 {
+        .resultado h2 {
             margin-bottom: 20px;
             font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .resultado h2::before {
+            content: "✓";
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-size: 20px;
+        }
+
+        .resultado.erro h2::before {
+            content: "✕";
         }
 
         .info-item {
-            background: rgba(255, 255, 255, 0.2);
+            margin-bottom: 15px;
             padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 10px;
-            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
         }
 
         .info-item strong {
             display: block;
-            margin-bottom: 5px;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 5px;
             opacity: 0.9;
         }
 
         .info-item span {
+            display: block;
             font-size: 18px;
             font-weight: 600;
         }
 
-        .loading {
-            background: white;
-            padding: 40px;
-            border-radius: 0 0 20px 20px;
+        .mensagem-motivacional {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-style: italic;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.active {
+            display: block;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e2e8f0;
-            border-top-color: #667eea;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
+            margin: 0 auto;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .hidden {
-            display: none !important;
-        }
-
-        .footer {
-            background: white;
-            padding: 20px;
-            text-align: center;
-            color: #718096;
-            font-size: 14px;
-            margin-top: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .footer-small {
+        .helper-text {
             font-size: 12px;
+            color: #999;
             margin-top: 5px;
-            opacity: 0.7;
         }
 
-        @media (max-width: 640px) {
-            .header { padding: 30px 20px; }
-            h1 { font-size: 24px; }
-            .search-card, .result, .loading { padding: 20px; }
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .info-item span {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
-
     <div class="container">
-        
         <div class="header">
-            <div class="logo">🔍</div>
-            <h1>Localizador de Sala</h1>
-            <p class="subtitle">Consulte seu local de prova.</p>
+            <h1>🎓 Colégio Nossa Senhora das Graças</h1>
+            <p>Consulta de Localização para Avaliação</p>
         </div>
-        
-        <div class="search-card">
-            
-            <div class="input-group">
-                <label for="dateSelector">1. Selecione a Data da Prova</label>
-                <select id="dateSelector">
-                    <option value="">Carregando datas...</option>
-                </select>
+
+        <form id="formBusca">
+            <div class="form-group">
+                <label for="dataAvaliacao">📅 Data da Avaliação:</label>
+                <input type="date" id="dataAvaliacao" required>
+                <p class="helper-text">Selecione a data da aplicação da avaliação</p>
             </div>
 
-            <div class="input-group">
-                <label for="studentName">2. Digite o Nome Completo do Aluno</label>
-                <input type="text" id="studentName" placeholder="Digite seu nome aqui..." disabled>
+            <div class="form-group">
+                <label for="nomeAluno">👤 Nome do Aluno:</label>
+                <input type="text" id="nomeAluno" placeholder="Digite o nome completo ou parte dele" required>
+                <p class="helper-text">Digite ao menos o primeiro e último nome</p>
             </div>
-            
-            <button id="searchButton" class="btn-search" onclick="buscarAluno()" disabled>
-                Buscar Local
-            </button>
-        </div>
-        
-        <div id="loading" class="loading hidden">
+
+            <button type="submit" class="btn-buscar">🔍 Buscar Localização</button>
+        </form>
+
+        <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Buscando...</p>
+            <p style="margin-top: 10px; color: #667eea;">Buscando informações...</p>
         </div>
 
-        <div id="result" class="result hidden">
-            </div>
-        
+        <div class="resultado" id="resultado"></div>
     </div>
 
-    <footer class="footer">
-        <p>Sistema de Ensalamento</p>
-        <p class="footer-small">Desenvolvido para a comunidade escolar.</p>
-    </footer>
-
     <script>
-        // URL do arquivo JSON (assumindo que ainda é 'ensalamento.json')
-        const DADOS_URL = 'ensalamento.json';
-        
-        // Variável global para armazenar todos os dados carregados
-        let allEnsalamentoData = [];
+        const form = document.getElementById('formBusca');
+        const loading = document.getElementById('loading');
+        const resultado = document.getElementById('resultado');
 
-        // Referências aos elementos do DOM
-        const dateSelector = document.getElementById('dateSelector');
-        const studentNameInput = document.getElementById('studentName');
-        const searchButton = document.getElementById('searchButton');
-        const resultDiv = document.getElementById('result');
-        const loadingDiv = document.getElementById('loading');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const dataInput = document.getElementById('dataAvaliacao').value;
+            const nomeInput = document.getElementById('nomeAluno').value.trim().toUpperCase();
 
-        // 1. Inicia o carregamento dos dados quando a página é carregada
-        document.addEventListener('DOMContentLoaded', carregarDadosIniciais);
+            if (!dataInput || !nomeInput) {
+                mostrarErro('Por favor, preencha todos os campos!');
+                return;
+            }
 
-        /**
-         * Carrega os dados do JSON, extrai as datas únicas e popula o seletor
-         */
-        async function carregarDadosIniciais() {
+            // Converte a data para o formato do arquivo: DD_MM_YYYY
+            const [ano, mes, dia] = dataInput.split('-');
+            const nomeArquivo = `ensalamento_${dia}_${mes}_${ano}.json`;
+
+            // Mostra loading
+            loading.classList.add('active');
+            resultado.style.display = 'none';
+
             try {
-                const url = `${DADOS_URL}?t=${new Date().getTime()}`; // Prevenção de cache
-                const response = await fetch(url);
+                // Busca o arquivo JSON no mesmo diretório
+                const response = await fetch(nomeArquivo);
                 
                 if (!response.ok) {
-                    throw new Error('Falha ao carregar o arquivo de ensalamento.');
-                }
-                
-                allEnsalamentoData = await response.json();
-                
-                if (!Array.isArray(allEnsalamentoData) || allEnsalamentoData.length === 0) {
-                     throw new Error('Arquivo de dados vazio ou em formato incorreto.');
+                    throw new Error('Arquivo não encontrado');
                 }
 
-                popularSeletorDeDatas(allEnsalamentoData);
+                const dados = await response.json();
+
+                // Remove acentos para busca mais flexível
+                const normalizarTexto = (texto) => {
+                    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+                };
+
+                const nomeNormalizado = normalizarTexto(nomeInput);
+
+                // Busca o aluno
+                const aluno = dados.find(item => {
+                    const nomeCompletoNormalizado = normalizarTexto(item.nome);
+                    // Verifica se o nome digitado está contido no nome completo
+                    return nomeCompletoNormalizado.includes(nomeNormalizado);
+                });
+
+                loading.classList.remove('active');
+
+                if (aluno) {
+                    mostrarSucesso(aluno);
+                } else {
+                    mostrarErro('Aluno não encontrado para esta data. Verifique se o nome está correto.');
+                }
 
             } catch (error) {
-                console.error('Erro inicial:', error);
-                showError('Não foi possível carregar os dados das provas. Entre em contato com a escola.');
-                dateSelector.innerHTML = `<option value="">Erro ao carregar datas</option>`;
-            }
-        }
-
-        /**
-         * Pega a lista de dados, extrai datas únicas e as coloca no <select>
-         */
-        function popularSeletorDeDatas(data) {
-            // Extrai todas as datas
-            const todasAsDatas = data.map(aluno => aluno.data_aplicacao);
-            // Filtra para ter apenas datas únicas e remove valores nulos/undefined
-            const datasUnicas = [...new Set(todasAsDatas)].filter(Boolean);
-            
-            // Ordena as datas (mais recente primeiro)
-            datasUnicas.sort().reverse(); 
-            
-            // Limpa o seletor
-            dateSelector.innerHTML = '';
-            
-            // Adiciona a opção padrão
-            dateSelector.add(new Option('Selecione uma data', ''));
-
-            // Adiciona cada data como uma opção formatada
-            datasUnicas.forEach(isoDate => {
-                const dataFormatada = formatarDataBR(isoDate);
-                dateSelector.add(new Option(dataFormatada, isoDate));
-            });
-
-            // Habilita o seletor de data
-            dateSelector.disabled = false;
-            
-            // Adiciona o "ouvinte" para habilitar o campo de nome
-            dateSelector.addEventListener('change', onDateSelectChange);
-        }
-
-        /**
-         * Habilita/desabilita o campo de nome e botão quando uma data é selecionada
-         */
-        function onDateSelectChange() {
-            const dataSelecionada = dateSelector.value;
-            if (dataSelecionada) {
-                studentNameInput.disabled = false;
-                searchButton.disabled = false;
-                studentNameInput.focus(); // Foca no campo de nome
-            } else {
-                studentNameInput.disabled = true;
-                searchButton.disabled = true;
-            }
-        }
-
-        /**
-         * Função para normalizar texto (remover acentos e converter para minúsculas)
-         */
-        function normalizeText(text) {
-            if (!text) return "";
-            return text
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .toLowerCase()
-                .trim();
-        }
-
-        /**
-         * Função principal de busca (chamada pelo botão)
-         */
-        function buscarAluno() {
-            const dataSelecionada = dateSelector.value;
-            const nomeDigitado = studentNameInput.value.trim();
-            
-            // Validações
-            if (!dataSelecionada) {
-                showError('Por favor, selecione uma data antes de buscar.');
-                return;
-            }
-            if (nomeDigitado.length < 3) {
-                showError('Por favor, digite pelo menos 3 letras do seu nome.');
-                return;
-            }
-            
-            // Mostrar loading
-            resultDiv.classList.add('hidden');
-            loadingDiv.classList.remove('hidden');
-            
-            const nomeNormalizado = normalizeText(nomeDigitado);
-
-            // Filtra os dados (que já estão na memória)
-            const resultados = allEnsalamentoData.filter(aluno => {
-                const dataMatch = aluno.data_aplicacao === dataSelecionada;
-                const nameMatch = normalizeText(aluno.nome).includes(nomeNormalizado);
-                return dataMatch && nameMatch;
-            });
-
-            // Esconde o loading
-            loadingDiv.classList.add('hidden');
-
-            // Processa os resultados
-            if (resultados.length === 1) {
-                showSuccess(resultados[0]);
-            } else if (resultados.length > 1) {
-                showError(`Foram encontrados ${resultados.length} resultados. Por favor, seja mais específico (use nome e sobrenome).`);
-            } else {
-                showError(`Nenhum aluno encontrado com o nome "${nomeDigitado}" para esta data. Verifique a digitação.`);
-            }
-        }
-
-        /**
-         * Formata uma data 'AAAA-MM-DD' para 'DD/MM/AAAA'
-         */
-        function formatarDataBR(isoDate) {
-            try {
-                const [ano, mes, dia] = isoDate.split('-');
-                return `${dia}/${mes}/${ano}`;
-            } catch (e) {
-                return isoDate; // Retorna a data original se o formato falhar
-            }
-        }
-
-        /**
-         * Mostra o card de sucesso (adaptado para a nova estrutura de dados)
-         */
-        function showSuccess(aluno) {
-            resultDiv.className = 'result success';
-            resultDiv.innerHTML = `
-                <h2>✅ Localização Encontrada!</h2>
-                
-                <div class="info-item">
-                    <strong>👨‍🎓 Aluno</strong>
-                    <span>${aluno.nome}</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>📅 Data da Prova</strong>
-                    <span>${formatarDataBR(aluno.data_aplicacao)}</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>🏫 Sala</strong>
-                    <span>${aluno.sala}</span>
-                </div>
-                
-                <div class="info-item">
-                    <strong>📍 Carteira</strong>
-                    <span>${aluno.carteira}</span>
-                </div>
-            `;
-            resultDiv.classList.remove('hidden');
-        }
-
-        /**
-         * Mostra o card de erro
-         */
-        function showError(message) {
-            resultDiv.className = 'result error';
-            resultDiv.innerHTML = `
-                <h2>❌ Erro na Consulta</h2>
-                <p style="font-size: 16px; line-height: 1.6; margin-top: 15px;">${message}</p>
-            `;
-            resultDiv.classList.remove('hidden');
-        }
-
-        // Permitir busca ao pressionar Enter no campo de nome
-        studentNameInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                buscarAluno();
+                loading.classList.remove('active');
+                mostrarErro(`Não foi possível localizar o arquivo de ensalamento para a data ${dataInput.split('-').reverse().join('/')}. Verifique se a data está correta ou entre em contato com a secretaria.`);
             }
         });
 
-        // Adiciona um listener ao botão de busca
-        searchButton.addEventListener('click', buscarAluno);
-        
-    </script>
+        function mostrarSucesso(aluno) {
+            const mensagens = [
+                "📚 Estude com dedicação e você alcançará grandes resultados!",
+                "🌟 Confie em você! Você está preparado para essa avaliação!",
+                "💪 O sucesso começa com a preparação. Boa sorte!",
+                "🎯 Foco, determinação e confiança. Você consegue!",
+                "✨ Acredite no seu potencial! Boa prova!",
+                "🚀 Você está pronto! Mostre todo o seu conhecimento!",
+                "🏆 A vitória pertence aos que se preparam. Vamos lá!"
+            ];
 
+            const mensagemAleatoria = mensagens[Math.floor(Math.random() * mensagens.length)];
+
+            resultado.className = 'resultado sucesso';
+            resultado.innerHTML = `
+                <h2>Localização Encontrada!</h2>
+                
+                <div class="info-item">
+                    <strong>Nome Completo</strong>
+                    <span>${aluno.nome}</span>
+                </div>
+
+                <div class="info-item">
+                    <strong>Sala</strong>
+                    <span>${aluno.sala}</span>
+                </div>
+
+                <div class="info-item">
+                    <strong>Carteira</strong>
+                    <span>Nº ${aluno.carteira}</span>
+                </div>
+
+                <div class="info-item">
+                    <strong>Data da Avaliação</strong>
+                    <span>${formatarData(aluno.data_aplicacao)}</span>
+                </div>
+
+                <div class="mensagem-motivacional">
+                    ${mensagemAleatoria}
+                </div>
+            `;
+        }
+
+        function mostrarErro(mensagem) {
+            resultado.className = 'resultado erro';
+            resultado.innerHTML = `
+                <h2>Atenção!</h2>
+                <p style="font-size: 16px; line-height: 1.6;">${mensagem}</p>
+            `;
+        }
+
+        function formatarData(dataISO) {
+            const [ano, mes, dia] = dataISO.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+    </script>
 </body>
 </html>
