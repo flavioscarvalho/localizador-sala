@@ -238,11 +238,9 @@
             .container {
                 padding: 25px;
             }
-
             .header h1 {
                 font-size: 24px;
             }
-
             .info-item span {
                 font-size: 16px;
             }
@@ -305,11 +303,17 @@
             resultado.style.display = 'none';
 
             try {
-                // Busca o arquivo JSON no mesmo diretório
-                const response = await fetch(nomeArquivo);
+                // --- ATUALIZAÇÃO ESTÁ AQUI ---
+                // Adicionamos um "cache buster" para forçar o navegador
+                // a baixar o arquivo mais recente e não usar a versão em cache.
+                const cacheBuster = `?v=${new Date().getTime()}`;
                 
+                const response = await fetch(nomeArquivo + cacheBuster);
+                // --- FIM DA ATUALIZAÇÃO ---
+
                 if (!response.ok) {
-                    throw new Error('Arquivo não encontrado');
+                    // Lança um erro mais específico
+                    throw new Error(`Erro ${response.status}: Arquivo não encontrado ou sem permissão.`);
                 }
 
                 const dados = await response.json();
@@ -320,14 +324,14 @@
                 };
 
                 const nomeNormalizado = normalizarTexto(nomeInput);
-
+                
                 // Busca o aluno
                 const aluno = dados.find(item => {
                     const nomeCompletoNormalizado = normalizarTexto(item.nome);
                     // Verifica se o nome digitado está contido no nome completo
                     return nomeCompletoNormalizado.includes(nomeNormalizado);
                 });
-
+                
                 loading.classList.remove('active');
 
                 if (aluno) {
@@ -338,7 +342,14 @@
 
             } catch (error) {
                 loading.classList.remove('active');
-                mostrarErro(`Não foi possível localizar o arquivo de ensalamento para a data ${dataInput.split('-').reverse().join('/')}. Verifique se a data está correta ou entre em contato com a secretaria.`);
+
+                // Log detalhado para o console (para você, o desenvolvedor, depurar)
+                console.error('Falha detalhada ao buscar o arquivo:', error.message);
+                console.error('Arquivo que o sistema tentou buscar:', nomeArquivo);
+
+                // Mensagem amigável para o usuário
+                const dataFormatada = dataInput.split('-').reverse().join('/');
+                mostrarErro(`Não foi possível localizar o arquivo de ensalamento para a data ${dataFormatada}. Verifique se a data está correta ou entre em contato com a secretaria.`);
             }
         });
 
@@ -352,7 +363,6 @@
                 "🚀 Você está pronto! Mostre todo o seu conhecimento!",
                 "🏆 A vitória pertence aos que se preparam. Vamos lá!"
             ];
-
             const mensagemAleatoria = mensagens[Math.floor(Math.random() * mensagens.length)];
 
             resultado.className = 'resultado sucesso';
